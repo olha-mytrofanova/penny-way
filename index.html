@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>PennyWay – Budget Tracker + Wishlist</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=final-3">
+  <link rel="icon" href="pennyway-fav.png" sizes="32x32">
+  <meta name="theme-color" content="#86b2cd">
+</head>
+<body class="bt-grid-bg">
+  <div class="wrap">
+    <h1 class="visually-hidden">PennyWay — Budget Tracker + Wishlist</h1>
+
+    <!-- Header / Logo -->
+    <header class="header-bar">
+      <div class="brand-logo" aria-label="PennyWay">
+        <div class="logo-white" role="img" aria-label="PennyWay logo"></div>
+      </div>
+    </header>
+
+    <!-- Top Nav -->
+    <nav class="bt-top-nav" role="navigation" aria-label="Primary">
+      <button class="bt-nav-btn" data-route="home"    aria-current="page">Home</button>
+      <button class="bt-nav-btn" data-route="savings">Savings</button>
+      <button class="bt-nav-btn" data-route="reports">Reports</button>
+    </nav>
+
+    <!-- HOME -->
+    <section id="home" class="bt-section">
+      <div class="filter-row" id="month-toolbar">
+        <label for="month-select">Month</label>
+        <select id="month-select"></select>
+        <label for="year-select">Year</label>
+        <select id="year-select"></select>
+      </div>
+
+      <section class="card entry-card" style="margin-top:16px;">
+        <div class="bt-tabs" role="tablist" aria-label="Entry actions">
+          <button class="bt-tab bt-active" data-tab="expense" role="tab" aria-selected="true"  type="button">Add expense</button>
+          <button class="bt-tab"          data-tab="income"  role="tab" aria-selected="false" type="button">Add income</button>
+          <button class="bt-tab"          data-tab="limits"  role="tab" aria-selected="false" type="button">Spending limits</button>
+        </div>
+
+        <div class="bt-tab-panels">
+          <!-- Add expense -->
+          <div class="bt-panel" data-panel="expense">
+            <h2 style="margin:8px 0 6px;">Add Expense</h2>
+            <form id="expense-form" autocomplete="off">
+              <div class="grid" style="grid-template-columns: repeat(2,1fr); gap:12px;">
+                <div>
+                  <label for="amount">Amount (CHF)</label>
+                  <input id="amount" type="number" step="0.01" min="0" placeholder="0.00" required/>
+                </div>
+                <div>
+                  <label for="category">Category</label>
+                  <select id="category" required></select>
+                </div>
+              </div>
+              <div style="margin-top:10px;">
+                <label for="note">Note</label>
+                <input id="note" type="text" placeholder="Optional note"/>
+              </div>
+              <div class="row" style="justify-content:flex-end; gap:8px; margin-top:10px;">
+                <button id="clear-data" type="button" class="ghost">Reset all data</button>
+                <button class="btn" type="submit">Add</button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Add income -->
+          <div class="bt-panel bt-hidden" data-panel="income">
+            <h2 style="margin:8px 0 6px;">Add Income</h2>
+            <div class="row" style="gap:10px; align-items:center;">
+              <input id="income-input" type="number" step="0.01" min="0" placeholder="Amount (CHF)">
+              <button id="add-income-btn" class="btn">Add income</button>
+            </div>
+          </div>
+
+          <!-- Spending limits -->
+          <div class="bt-panel bt-hidden" data-panel="limits">
+            <div class="row" style="justify-content: space-between; align-items:center; margin:8px 0 10px;">
+              <h2 style="margin:0;">Spending limits</h2>
+              <button id="open-limits-modal" class="btn">Edit limits</button>
+            </div>
+            <div class="muted" style="font-size:12px;">
+              Set target share per category for the selected month. Leave empty for no limit.
+            </div>
+            <div id="limits-brief" class="empty">Open “Edit limits” to configure.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Dashboard -->
+      <section class="card" style="margin-top:16px;">
+        <h2 style="margin-top:0">Dashboard</h2>
+        <div class="bt-shell">
+          <div class="bt-col bt-left">
+            <div class="card soft chart-card">
+              <canvas id="categoryChart" aria-label="Expenses by category chart" role="img"></canvas>
+              <div id="no-chart" class="empty" style="display:none;">No data yet.</div>
+            </div>
+          </div>
+          <div class="bt-col bt-right">
+            <div class="card soft totals-card">
+              <h3 class="muted" style="margin:0 0 8px;">Totals by category</h3>
+              <div id="totals" class="totals"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Expenses -->
+      <section class="card card-xl" id="expenses-card" style="margin-top:16px;">
+        <div class="row" style="justify-content: space-between; align-items:center; margin-bottom:8px;">
+          <h2 style="margin:0;">Expenses</h2>
+          <button id="toggle-expenses" class="ghost small">Hide</button>
+        </div>
+        <div class="row" style="justify-content: space-between; align-items:center; margin-bottom:8px;">
+          <div class="muted"><span id="expense-count">0 items</span></div>
+          <div class="muted">Total: <strong id="grand-total">0.00 CHF</strong></div>
+        </div>
+        <div id="expense-table-wrap" class="exp-wrap">
+          <table id="expense-table">
+            <thead>
+              <tr><th>Date</th><th>Category</th><th>Note</th><th class="right">Amount</th><th></th></tr>
+            </thead>
+            <tbody id="expense-body"></tbody>
+          </table>
+        </div>
+        <div id="empty-expenses" class="empty">No expenses yet. Add your first one above.</div>
+      </section>
+
+      <!-- Incomes history -->
+      <section class="card card-xl" id="incomes-card" style="margin-top:16px;">
+        <div class="row" style="justify-content: space-between; align-items:center; margin-bottom:8px;">
+          <h2 style="margin:0;">Incomes</h2>
+          <div class="muted">Total: <strong id="income-total">0.00 CHF</strong></div>
+        </div>
+        <div id="income-table-wrap" class="exp-wrap">
+          <table id="income-table">
+            <thead>
+            <tr><th>Date</th><th class="right">Amount</th><th></th></tr>
+            </thead>
+            <tbody id="income-body"></tbody>
+          </table>
+        </div>
+        <div id="empty-incomes" class="empty">No incomes yet. Add your first one above.</div>
+      </section>
+    </section>
+
+    <!-- SAVINGS -->
+    <section id="savings" class="bt-section bt-hidden">
+      <div class="card" style="margin-top:16px;">
+        <h2 style="margin:0 0 10px;">Savings</h2>
+
+        <div class="leftover-row">
+          <span class="muted">Leftover this month:</span>
+          <strong id="s-leftover">0.00 CHF</strong>
+          <small class="muted formula-note"></small>
+        </div>
+
+        <!-- ЄДИНИЙ контейнер зі сценою банки + кнопками -->
+        <div class="jar-stage">
+          <!-- Банка -->
+          <div id="savings-jar" class="pw-jar" aria-label="Savings jar (CSS)">
+          <div class="pw-liquid"></div>
+          <div class="pw-jar-glass"></div>
+          <div class="pw-jar-neck"></div>
+          <div class="pw-jar-cap"></div>
+        </div>
+
+
+
+          <!-- Кнопки під банкою -->
+          <div class="jar-controls">
+            <button id="jar-minus" class="ghost">–10 CHF</button>
+            <button id="jar-plus">+10 CHF</button>
+          </div>
+
+          <!-- Статистика -->
+          <div class="jar-stats">
+            <div>Accumulated: <strong id="savings-total">0.00 CHF</strong></div>
+            <div>Target: <strong id="s-target">—</strong></div>
+            <div>Progress: <strong id="s-progress">0%</strong></div>
+          </div>
+        </div>
+        <!-- Видалено дублюючий блок jar-controls, який був тут -->
+
+      </div> <!-- End of Savings Card (Savings Jar content) -->
+
+      <!-- Wishlist - ПЕРЕМІЩЕНО СЮДИ -->
+      <div class="card" style="margin-top:16px;">
+        <div class="row" style="justify-content: space-between; align-items:center;">
+          <h2 style="margin:0;">Wishlist</h2>
+          <button id="clear-wishlist" class="ghost">Clear all</button>
+        </div>
+        <form id="wish-form" class="grid" style="grid-template-columns: repeat(4, 1fr); gap:10px; margin-top:8px;">
+          <input id="w-title"  type="text"  placeholder="Title" required>
+          <input id="w-url"    type="url"   placeholder="Image URL (optional)">
+          <input id="w-target" type="number" step="0.01" min="0" placeholder="Target CHF (optional)">
+          <input id="w-note"   type="text"  placeholder="Note (optional)">
+          <div style="grid-column: 1 / -1; display:flex; justify-content:flex-end;">
+            <button type="submit" class="btn">Add to wishlist</button>
+          </div>
+        </form>
+        <div id="empty-wishlist" class="empty">No items yet.</div>
+        <div id="wish-list" class="grid wish-grid" style="margin-top:10px;"></div>
+      </div> <!-- End of Wishlist Card -->
+
+    </section>
+
+    <!-- REPORTS (overview-only) -->
+<section id="reports" class="bt-section bt-hidden" aria-hidden="true">
+  <h2 class="visually-hidden">Reports</h2>
+  <div id="bt-reports">
+    <!-- Спрощений контейнер: KPI + 4 діаграми рендеряться в reports.js -->
+    <div id="rep-cards"></div>
+  </div>
+</section>
+
+
+  <!-- Limits Modal -->
+  <div id="limits-modal" class="modal hidden" aria-hidden="true">
+    <div class="modal__backdrop"></div>
+    <div class="modal__dialog" role="dialog" aria-modal="true" aria-labelledby="limits-title">
+      <div class="modal__head">
+        <h3 id="limits-title">Edit monthly limits (%)</h3>
+        <div class="muted" id="limits-subtitle" style="margin-top:4px;"></div>
+      </div>
+      <div class="modal__body">
+        <div id="limits-form-list" class="limits-form-list"></div>
+      </div>
+      <div class="modal__foot">
+        <button id="limits-cancel" class="ghost">Cancel</button>
+        <button id="limits-save" class="btn">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <script src="script.js?v=final-3"></script>
+  <!-- Переконайтеся, що reports.js завантажується після script.js, якщо він залежить від його глобальних об'єктів/функцій -->
+  <script src="reports.js?v=final-3"></script>
+</body>
+</html>
