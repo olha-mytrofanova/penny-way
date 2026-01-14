@@ -162,9 +162,7 @@
           <small class="muted formula-note"></small>
         </div>
 
-        <!-- ЄДИНИЙ контейнер зі сценою банки + кнопками -->
         <div class="jar-stage">
-          <!-- Банка -->
           <div id="savings-jar" class="pw-jar" aria-label="Savings jar (CSS)">
           <div class="pw-liquid"></div>
           <div class="pw-jar-glass"></div>
@@ -174,24 +172,20 @@
 
 
 
-          <!-- Кнопки під банкою -->
           <div class="jar-controls">
             <button id="jar-minus" class="ghost">–10 CHF</button>
             <button id="jar-plus">+10 CHF</button>
           </div>
 
-          <!-- Статистика -->
           <div class="jar-stats">
             <div>Accumulated: <strong id="savings-total">0.00 CHF</strong></div>
             <div>Target: <strong id="s-target">—</strong></div>
             <div>Progress: <strong id="s-progress">0%</strong></div>
           </div>
         </div>
-        <!-- Видалено дублюючий блок jar-controls, який був тут -->
 
-      </div> <!-- End of Savings Card (Savings Jar content) -->
+      </div>
 
-      <!-- Wishlist - ПЕРЕМІЩЕНО СЮДИ -->
       <div class="card" style="margin-top:16px;">
         <div class="row" style="justify-content: space-between; align-items:center;">
           <h2 style="margin:0;">Wishlist</h2>
@@ -208,7 +202,7 @@
         </form>
         <div id="empty-wishlist" class="empty">No items yet.</div>
         <div id="wish-list" class="grid wish-grid" style="margin-top:10px;"></div>
-      </div> <!-- End of Wishlist Card -->
+      </div>
 
     </section>
 
@@ -216,7 +210,6 @@
 <section id="reports" class="bt-section bt-hidden" aria-hidden="true">
   <h2 class="visually-hidden">Reports</h2>
   <div id="bt-reports">
-    <!-- Спрощений контейнер: KPI + 4 діаграми рендеряться в reports.js -->
     <div id="rep-cards"></div>
   </div>
 </section>
@@ -242,7 +235,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
   <script src="script.js?v=final-3"></script>
-  <!-- Переконайтеся, що reports.js завантажується після script.js, якщо він залежить від його глобальних об'єктів/функцій -->
   <script src="reports.js?v=final-3"></script>
 </body>
 </html>
