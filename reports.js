@@ -1,5 +1,3 @@
-// reports.js — для PennyWay (структура з script.js, де expenses = { mk: [] })
-
 (function () {
   const STORE_KEY = 'penny.v3';
 
@@ -12,7 +10,6 @@
     }
   }
 
-  // допоміжне: отримати відсортований список місяців типу '2025-10'
   function getMonthsFromState(st) {
     const set = new Set();
     Object.keys(st.expenses || {}).forEach(mk => set.add(mk));
@@ -20,7 +17,6 @@
     return Array.from(set).sort();
   }
 
-  // зібрати агрегати по місяцях
   function buildMonthly(st) {
     const months = getMonthsFromState(st);
     const byMonth = {}; // {mk: {inc, exp, sav, inv}}
@@ -52,7 +48,7 @@
     return { months, byMonth };
   }
 
-  // KPI по останньому місяцю
+  // KPI
   function buildKpi(months, byMonth) {
     if (!months.length) {
       return { month: '—', net: 0, savings: 0, overspend: 0 };
@@ -68,7 +64,6 @@
     };
   }
 
-  // ліміти vs факт на 1 місяць
   function buildLimitsData(st, month) {
     const limits = (st.limits && st.limits[month]) || {};
     const expenses = (st.expenses && st.expenses[month]) || [];
@@ -84,7 +79,6 @@
     return { labels, actual, limitPct };
   }
 
-  // формат CHF
   function chf(v) {
     return (v || 0).toFixed(2) + ' CHF';
   }
@@ -260,6 +254,5 @@
     }
   }
 
-  // робимо глобальним, щоб викликати з router
   window.renderPennyReports = renderReports;
 })();
