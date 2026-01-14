@@ -1,7 +1,3 @@
-/* =========================================
-   PennyWay – Home + Savings (final-3)
-   ========================================= */
-
 /* ---------- Helpers ---------- */
 const $  = (s, r=document) => r.querySelector(s);
 const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
@@ -10,7 +6,6 @@ const mkey  = (d) => (d||today()).slice(0,7);
 const fmt2  = (n) => Number(n||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
 const esc   = (x) => String(x==null?'':x).replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 
-/* chart handle must be defined early (avoid TDZ) */
 let chart = null;
 
 /* ---------- Data ---------- */
@@ -56,40 +51,40 @@ function onDateChange(){ renderAll(); if($('.bt-tab.bt-active')?.dataset.tab==='
   };
 
   function reveal(route){
-    // ховаємо все
+    
     Object.values(SECTIONS).forEach(s => {
       if (!s) return;
       s.classList.add('bt-hidden');
       s.style.display = 'none';
     });
 
-    // показуємо потрібне
+    
     const tgt = SECTIONS[route] || SECTIONS.home;
     if (tgt) {
       tgt.classList.remove('bt-hidden');
       tgt.style.display = 'block';
     }
 
-    // активна кнопка
+    
     $$('.bt-nav-btn').forEach(b => {
       b.setAttribute('aria-current', b.dataset.route === route ? 'page' : 'false');
     });
 
-    // скрол
+    
     window.scrollTo({ top: 0, behavior: 'instant' });
 
-    // якщо Home — підрегати doughnut
+    
     if (route === 'home' && chart) {
       setTimeout(() => chart.resize(), 0);
     }
 
-    // якщо Reports — перемалювати діаграми
+    
     if (route === 'reports' && window.renderPennyReports) {
       window.renderPennyReports();
     }
   }
 
-  // кліки по навігації
+  
   document.addEventListener('click', e => {
     const b = e.target.closest('.bt-nav-btn');
     if (!b) return;
@@ -99,11 +94,11 @@ function onDateChange(){ renderAll(); if($('.bt-tab.bt-active')?.dataset.tab==='
     reveal(r);
   });
 
-  // перший показ
+  
   const init = (location.hash || '#home').slice(1);
   reveal(['home','savings','reports'].includes(init) ? init : 'home');
 
-  // зміна хеша (вручну)
+  
   window.addEventListener('hashchange', () => {
     const r = (location.hash || '#home').slice(1);
     reveal(['home','savings','reports'].includes(r) ? r : 'home');
@@ -172,7 +167,7 @@ function renderExpenses(){
   const { rows }=getMonthData(mk);
   const body=$('#expense-body'), empty=$('#empty-expenses'), count=$('#expense-count'), grand=$('#grand-total');
 
-  // якщо немає розмітки — просто вийти
+  
   if (!body || !empty || !count || !grand) return;
 
   body.innerHTML=rows.map(r=>`
@@ -196,7 +191,7 @@ function renderIncomes(){
   const { incomeRows, incomeSum } = getMonthData(mk);
   const body=$('#income-body'), empty=$('#empty-incomes'), total=$('#income-total');
 
-  // якщо немає таблиці доходів — просто вийти
+  
   if (!body || !empty || !total) return;
   body.innerHTML = (incomeRows||[]).map(r=>`
     <tr>
@@ -385,13 +380,13 @@ function renderSavings(){
   const { incomeSum, totalExp } = getMonthData(mk);
   const jarTotal = state.jar[mk]?.total || 0;
 
-  // текст
+  
   $('#savings-total').textContent = `${fmt2(jarTotal)} CHF`;
   const targetObj = W.getActiveGoal();
   const target = targetObj?.target ? Number(targetObj.target) : 0;
   $('#s-target').textContent = target ? `${fmt2(target)} CHF` : '—';
 
-  // % прогресу
+  
   let pct = 0, over = 0;
   if (target > 0) {
     pct = (jarTotal / target) * 100;
@@ -402,21 +397,21 @@ function renderSavings(){
     ? `${Math.floor(pct)}%${over>0 ? ` (+${fmt2(over)} CHF over)` : ''}`
     : '0%';
 
-  // заливаємо воду
+  
   const jarEl = $('#savings-jar');
   if (jarEl) {
     const level = Math.min(82, Math.max(0, pct)); // 82% щоб не в кришку
     jarEl.style.setProperty('--fill', level.toFixed(2) + '%');
   }
 
-  // leftover
+  
   const leftover = (incomeSum || 0) + (totalExp || 0) - (jarTotal || 0);
   const lo = $('#s-leftover');
   lo.textContent = `${fmt2(leftover)} CHF`;
   lo.style.color = leftover < 0 ? '#b91c1c' : 'inherit';
 }
 
-// кнопки +/-
+
 $('#jar-plus')?.addEventListener('click', () => {
   const mk = currentKey();
   const obj = state.jar[mk] ||= { total: 0 };
