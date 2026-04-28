@@ -6,11 +6,11 @@
   <title>PennyWay – Budget Tracker + Wishlist</title>
 
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=final-3">
+  <link rel="stylesheet" href="style.css?v=final-4">
   <link rel="icon" href="pennyway-fav.png" sizes="32x32">
   <meta name="theme-color" content="#86b2cd">
 </head>
-<body class="bt-grid-bg">
+<body>
   <div class="wrap">
     <h1 class="visually-hidden">PennyWay — Budget Tracker + Wishlist</h1>
 
@@ -31,24 +31,42 @@
     <!-- HOME -->
     <section id="home" class="bt-section">
       <div class="filter-row" id="month-toolbar">
-        <label for="month-select">Month</label>
-        <select id="month-select"></select>
-        <label for="year-select">Year</label>
-        <select id="year-select"></select>
+        <!-- hidden selects keep existing JS working -->
+        <select id="month-select" style="display:none" aria-hidden="true"></select>
+        <select id="year-select"  style="display:none" aria-hidden="true"></select>
+
+        <!-- new month picker -->
+        <div class="month-picker" id="month-picker">
+          <button class="mp-arrow" id="mp-prev" aria-label="Previous month">‹</button>
+          <button class="mp-label" id="mp-label" aria-haspopup="true">—</button>
+          <button class="mp-arrow" id="mp-next" aria-label="Next month">›</button>
+          <div class="mp-dropdown" id="mp-dropdown">
+            <div class="mp-year-row">
+              <button class="mp-yr-btn" id="mp-yr-prev">‹</button>
+              <span id="mp-yr-label">2026</span>
+              <button class="mp-yr-btn" id="mp-yr-next">›</button>
+            </div>
+            <div class="mp-grid" id="mp-grid"></div>
+          </div>
+        </div>
+
+        <button id="clear-data" type="button" class="reset-link">Reset all data</button>
       </div>
 
       <section class="card entry-card" style="margin-top:16px;">
-        <div class="bt-tabs" role="tablist" aria-label="Entry actions">
-          <button class="bt-tab bt-active" data-tab="expense" role="tab" aria-selected="true"  type="button">Add expense</button>
-          <button class="bt-tab"          data-tab="income"  role="tab" aria-selected="false" type="button">Add income</button>
-          <button class="bt-tab"          data-tab="limits"  role="tab" aria-selected="false" type="button">Spending limits</button>
+        <div class="entry-card-header">
+          <div class="bt-tabs" role="tablist" aria-label="Entry actions">
+            <button class="bt-tab bt-active" data-tab="expense" role="tab" aria-selected="true"  type="button">💸 Add expense</button>
+            <button class="bt-tab"           data-tab="income"  role="tab" aria-selected="false" type="button">💰 Add income</button>
+            <button class="bt-tab"           data-tab="limits"  role="tab" aria-selected="false" type="button">🎯 Spending limits</button>
+          </div>
+          <div class="entry-summary" id="entry-summary"></div>
         </div>
 
         <div class="bt-tab-panels">
           <!-- Add expense -->
           <div class="bt-panel" data-panel="expense">
-            <h2 style="margin:8px 0 6px;">Add Expense</h2>
-            <form id="expense-form" autocomplete="off">
+            <form id="expense-form" autocomplete="off" style="margin-top:4px;">
               <div class="grid" style="grid-template-columns: repeat(2,1fr); gap:12px;">
                 <div>
                   <label for="amount">Amount (CHF)</label>
@@ -59,21 +77,25 @@
                   <select id="category" required></select>
                 </div>
               </div>
+              <div class="quick-amounts">
+                <button type="button" class="quick-amt" data-amt="50">50 CHF</button>
+                <button type="button" class="quick-amt" data-amt="100">100 CHF</button>
+                <button type="button" class="quick-amt" data-amt="200">200 CHF</button>
+                <button type="button" class="quick-amt" data-amt="500">500 CHF</button>
+              </div>
               <div style="margin-top:10px;">
                 <label for="note">Note</label>
                 <input id="note" type="text" placeholder="Optional note"/>
               </div>
-              <div class="row" style="justify-content:flex-end; gap:8px; margin-top:10px;">
-                <button id="clear-data" type="button" class="ghost">Reset all data</button>
-                <button class="btn" type="submit">Add</button>
+              <div class="row" style="justify-content:flex-end; margin-top:10px;">
+                <button class="btn" id="add-expense-btn" type="submit">Add</button>
               </div>
             </form>
           </div>
 
           <!-- Add income -->
           <div class="bt-panel bt-hidden" data-panel="income">
-            <h2 style="margin:8px 0 6px;">Add Income</h2>
-            <div class="row" style="gap:10px; align-items:center;">
+            <div class="row" style="gap:10px; align-items:center; margin-top:4px;">
               <input id="income-input" type="number" step="0.01" min="0" placeholder="Amount (CHF)">
               <button id="add-income-btn" class="btn">Add income</button>
             </div>
@@ -88,7 +110,7 @@
             <div class="muted" style="font-size:12px;">
               Set target share per category for the selected month. Leave empty for no limit.
             </div>
-            <div id="limits-brief" class="empty">Open “Edit limits” to configure.</div>
+            <div id="limits-brief" class="empty">Open "Edit limits" to configure.</div>
           </div>
         </div>
       </section>
@@ -105,7 +127,7 @@
           </div>
           <div class="bt-col bt-right">
             <div class="card soft totals-card">
-              <h3 class="muted" style="margin:0 0 8px;">Totals by category</h3>
+              <h3 style="margin:0 0 8px;font-size:15px;font-weight:700;color:var(--text);">Totals by category</h3>
               <div id="totals" class="totals"></div>
             </div>
           </div>
@@ -133,7 +155,7 @@
         <div id="empty-expenses" class="empty">No expenses yet. Add your first one above.</div>
       </section>
 
-      <!-- Incomes history -->
+      <!-- Incomes -->
       <section class="card card-xl" id="incomes-card" style="margin-top:16px;">
         <div class="row" style="justify-content: space-between; align-items:center; margin-bottom:8px;">
           <h2 style="margin:0;">Incomes</h2>
@@ -142,7 +164,7 @@
         <div id="income-table-wrap" class="exp-wrap">
           <table id="income-table">
             <thead>
-            <tr><th>Date</th><th class="right">Amount</th><th></th></tr>
+              <tr><th>Date</th><th class="right">Amount</th><th></th></tr>
             </thead>
             <tbody id="income-body"></tbody>
           </table>
@@ -154,95 +176,105 @@
     <!-- SAVINGS -->
     <section id="savings" class="bt-section bt-hidden">
       <div class="card" style="margin-top:16px;">
-        <h2 style="margin:0 0 10px;">Savings</h2>
+        <h2 style="margin:0 0 20px;">Savings</h2>
+        <div class="savings-layout">
 
-        <div class="leftover-row">
-          <span class="muted">Leftover this month:</span>
-          <strong id="s-leftover">0.00 CHF</strong>
-          <small class="muted formula-note"></small>
-        </div>
-
-        <!-- ЄДИНИЙ контейнер зі сценою банки + кнопками -->
-        <div class="jar-stage">
-          <!-- Банка -->
-          <div id="savings-jar" class="pw-jar" aria-label="Savings jar (CSS)">
-          <div class="pw-liquid"></div>
-          <div class="pw-jar-glass"></div>
-          <div class="pw-jar-neck"></div>
-          <div class="pw-jar-cap"></div>
-        </div>
-
-
-
-          <!-- Кнопки під банкою -->
-          <div class="jar-controls">
-            <button id="jar-minus" class="ghost">–10 CHF</button>
-            <button id="jar-plus">+10 CHF</button>
+          <!-- Left: jar + controls -->
+          <div class="jar-col">
+            <div id="savings-jar" class="pw-jar" aria-label="Savings jar">
+              <div class="pw-jar-glass">
+                <div class="pw-liquid"></div>
+              </div>
+              <div class="pw-jar-neck"></div>
+              <div class="pw-jar-cap"></div>
+              <div class="jar-amount-label" id="jar-amount-label">0 CHF</div>
+            </div>
+            <div id="jar-motivation" class="jar-motivation">Start saving today! 🌱</div>
+            <div class="jar-controls">
+              <button id="jar-minus" class="ghost">–10 CHF</button>
+              <button id="jar-plus">+10 CHF</button>
+            </div>
           </div>
 
-          <!-- Статистика -->
-          <div class="jar-stats">
-            <div>Accumulated: <strong id="savings-total">0.00 CHF</strong></div>
-            <div>Target: <strong id="s-target">—</strong></div>
-            <div>Progress: <strong id="s-progress">0%</strong></div>
+          <!-- Right: stat cards -->
+          <div class="stats-col">
+            <div class="stat-card">
+              <div class="stat-icon">💰</div>
+              <div class="stat-label">Accumulated</div>
+              <div class="stat-value" id="savings-total">0.00 CHF</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon">🎯</div>
+              <div class="stat-label">Target</div>
+              <div class="stat-value" id="s-target">—</div>
+            </div>
+            <div class="stat-card stat-card--progress">
+              <div class="stat-icon">📈</div>
+              <div class="stat-label">Progress</div>
+              <div class="stat-value" id="s-progress">0%</div>
+              <div class="progress-bar-wrap">
+                <div class="progress-bar-fill" id="s-progress-bar"></div>
+              </div>
+            </div>
+            <div class="stat-card stat-card--leftover">
+              <div class="stat-icon">🏦</div>
+              <div class="stat-label">Leftover this month</div>
+              <div class="stat-value" id="s-leftover">0.00 CHF</div>
+            </div>
           </div>
+
         </div>
-        <!-- Видалено дублюючий блок jar-controls, який був тут -->
+      </div>
 
-      </div> <!-- End of Savings Card (Savings Jar content) -->
-
-      <!-- Wishlist - ПЕРЕМІЩЕНО СЮДИ -->
+      <!-- Wishlist -->
       <div class="card" style="margin-top:16px;">
         <div class="row" style="justify-content: space-between; align-items:center;">
           <h2 style="margin:0;">Wishlist</h2>
           <button id="clear-wishlist" class="ghost">Clear all</button>
         </div>
         <form id="wish-form" class="grid" style="grid-template-columns: repeat(4, 1fr); gap:10px; margin-top:8px;">
-          <input id="w-title"  type="text"  placeholder="Title" required>
-          <input id="w-url"    type="url"   placeholder="Image URL (optional)">
+          <input id="w-title"  type="text"   placeholder="Title" required>
+          <input id="w-url"    type="url"    placeholder="Image URL (optional)">
           <input id="w-target" type="number" step="0.01" min="0" placeholder="Target CHF (optional)">
-          <input id="w-note"   type="text"  placeholder="Note (optional)">
+          <input id="w-note"   type="text"   placeholder="Note (optional)">
           <div style="grid-column: 1 / -1; display:flex; justify-content:flex-end;">
             <button type="submit" class="btn">Add to wishlist</button>
           </div>
         </form>
         <div id="empty-wishlist" class="empty">No items yet.</div>
         <div id="wish-list" class="grid wish-grid" style="margin-top:10px;"></div>
-      </div> <!-- End of Wishlist Card -->
-
+      </div>
     </section>
 
-    <!-- REPORTS (overview-only) -->
-<section id="reports" class="bt-section bt-hidden" aria-hidden="true">
-  <h2 class="visually-hidden">Reports</h2>
-  <div id="bt-reports">
-    <!-- Спрощений контейнер: KPI + 4 діаграми рендеряться в reports.js -->
-    <div id="rep-cards"></div>
-  </div>
-</section>
-
-
-  <!-- Limits Modal -->
-  <div id="limits-modal" class="modal hidden" aria-hidden="true">
-    <div class="modal__backdrop"></div>
-    <div class="modal__dialog" role="dialog" aria-modal="true" aria-labelledby="limits-title">
-      <div class="modal__head">
-        <h3 id="limits-title">Edit monthly limits (%)</h3>
-        <div class="muted" id="limits-subtitle" style="margin-top:4px;"></div>
+    <!-- REPORTS -->
+    <section id="reports" class="bt-section bt-hidden">
+      <h2 class="visually-hidden">Reports</h2>
+      <div id="bt-reports">
+        <div id="rep-cards"></div>
       </div>
-      <div class="modal__body">
-        <div id="limits-form-list" class="limits-form-list"></div>
-      </div>
-      <div class="modal__foot">
-        <button id="limits-cancel" class="ghost">Cancel</button>
-        <button id="limits-save" class="btn">Save</button>
+    </section>
+
+    <!-- Limits Modal -->
+    <div id="limits-modal" class="modal hidden" aria-hidden="true">
+      <div class="modal__backdrop"></div>
+      <div class="modal__dialog" role="dialog" aria-modal="true" aria-labelledby="limits-title">
+        <div class="modal__head">
+          <h3 id="limits-title">Edit monthly limits (%)</h3>
+          <div class="muted" id="limits-subtitle" style="margin-top:4px;"></div>
+        </div>
+        <div class="modal__body">
+          <div id="limits-form-list" class="limits-form-list"></div>
+        </div>
+        <div class="modal__foot">
+          <button id="limits-cancel" class="ghost">Cancel</button>
+          <button id="limits-save" class="btn">Save</button>
+        </div>
       </div>
     </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
-  <script src="script.js?v=final-3"></script>
-  <!-- Переконайтеся, що reports.js завантажується після script.js, якщо він залежить від його глобальних об'єктів/функцій -->
-  <script src="reports.js?v=final-3"></script>
+  <script src="script.js?v=final-4"></script>
+  <script src="reports.js?v=final-4"></script>
 </body>
 </html>
